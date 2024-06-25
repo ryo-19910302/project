@@ -28,7 +28,8 @@ if (empty($errors)) {
     <head>
         <meta charset="UTF-8">
         <title>設定</title>
-        <style>
+        <link rel="stylesheet" href="base.css"> <!-- CSSファイル読込 -->
+        <!--<style>
 
             * {
                 margin: 0;
@@ -67,10 +68,6 @@ if (empty($errors)) {
                 text-decoration: none; /* リストの下線を削除 */
             }
 
-            /* .head_menu_list > ul > li {
-                position: relative;
-            } */
-
             .head_menu_list span, .head_menu_list a	{
                 display: block;
                 padding: 5px 20px;
@@ -99,7 +96,7 @@ if (empty($errors)) {
             }
 
             .max_loss {
-                width: 200px;
+                /* width: 200px; */
             }
 
             .bar1 {
@@ -148,7 +145,7 @@ if (empty($errors)) {
                 align-items: center; /* 要素を垂直方向に中央揃え */
             }
 
-        </style>
+        </style>-->
     </head>
     <body>
         <h1>収支管理</h1>
@@ -172,7 +169,8 @@ if (empty($errors)) {
             <div class="bar1">
                 <h1>設定</h1>
                 <div class="btn_area">
-                    <input type="button" class="button" value="保存"> <!-- onclickを追加する -->
+                    <!-- <input type="button" class="button" value="保存"> onclickを追加する -->
+                    <input type="submit" class="button" value="保存">
                     <input type="button" class="button" value="戻る"> <!-- onclickを追加する -->
                 </div>
             </div>
@@ -183,7 +181,7 @@ if (empty($errors)) {
                             <tr>
                                 <th width="200">最大損失額</th>
                                 <td>
-                                    <input type="text" class="max_loss" maxlength="20">
+                                    <input type="text" class="max_loss" name="max_loss" maxlength="20" value=<?php $_POST["max_loss"] ?>>
                                 </td>
                             </tr>
                         </tbody>
@@ -191,10 +189,5 @@ if (empty($errors)) {
                 </div>
             </div>
         </form>
-
-
-
-
-
     </body>
 </html>

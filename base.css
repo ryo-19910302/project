@@ -1,0 +1,145 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.head_menu {
+    background-color: #333;
+    position: sticky;
+    top: 0;
+    display: flex;
+    width: 100%;
+}
+
+.head_menu_list {
+    color: #ffffff;
+}
+
+.head_menu_list ul {
+    list-style-type: none;
+    padding: 0;
+    font-size: 0;
+}
+
+.head_menu_list li {
+    float: left;
+    margin: 0;
+    padding: 0;
+    font-size: 16px;
+}
+
+.head_menu_list a {
+    cursor: pointer;
+    color: #ffffff;
+    text-decoration: none; /* リストの下線を削除 */
+}
+
+.head_menu_list span, .head_menu_list a	{
+    display: block;
+    padding: 5px 20px;
+    color: white;
+    background-color: #333;
+    white-space: nowrap;
+    line-height: 30px;
+    cursor: pointer;
+}
+
+.head_menu_list span:hover, .head_menu_list a:hover, .head_menu_list .span_selected	{
+    background-color: #00a0c6 !important;
+}
+
+.tb_custom_bd th {
+    padding: 10px 40px;
+    background-color: #e6e6fa;
+    border: solid 1px #C0C0C0;
+    color: #333333;
+}
+
+.tb_custom_bd td {
+    background-color: #ffffff;
+    border: solid 1px #C0C0C0;
+    color: #333333;
+}
+
+.max_loss {
+    width: 200px;
+}
+
+.bar1 {
+    display: flex;
+    align-items: center;  /* 修正点 *//* 要素を垂直方向に中央揃え */
+}
+
+.bar1 h1 {
+    width: 140px;
+    height: 50px;
+    display: flex; /* 修正点 */
+    align-items: center; /* 修正点 */
+    justify-content: center;    /* 修正点 */ 
+    vertical-align: middle;
+    font-size: 16px;
+    font-weight: normal;
+    padding-left: 10px;
+    background-color: #6a5acd;
+    color: #fff;
+}
+
+.wrapper {
+    padding: 10px 20px;
+}
+
+.button {
+    width: 80px;
+    height: 50px;
+    font-size: 16px;
+    text-align: center;
+    color: #fff;
+    background-color: #4b0082;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn_area {
+    display: flex;
+    align-items: center; /* 要素を垂直方向に中央揃え */
+}
+
+.DataColumnOrange {
+    background-color: white;
+    font-size: 10pt;
+    height: 35px;
+    border: 1px solid #F3B55B;
+    padding-left: 3px;
+}
+
+.nomal_input_table th {
+    padding: 3px;
+    text-align: left;
+    vertical-align: middle;
+    border: 1px solid #F3B55B;
+    background-color: #fffacd;
+}
+
+.tb_custom {
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+#sub {
+    box-sizing: border-box;
+    overflow: hidden;
+    float: left;
+    width: 300px;
+}
+
+#main {
+    box-sizing: border-box;
+    overflow: hidden;
+    float: right;
+    width: 68%;
+}
+
+
