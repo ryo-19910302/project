@@ -1,7 +1,39 @@
 <?php
 require "connect.php";
-require "machine_list.php";
 
+// POSTリクエストを処理
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // フォームフィールドからデータを取得
+    $date = $_POST['playYMD']; // 日付のフォーマットはYYYY-MM-DDと仮定
+    $machineType = $_POST['machine_list'];
+    $invest = $_POST['invest'];
+    $retrieve = $_POST['retrieve'];
+    $remarks = $_POST['remarks'];
+
+    if (empty($date) || empty($machineType) || empty($invest) || empty($retrieve)) {
+        echo "<p style='color:red;'>すべての必須フィールドを入力してください。</p>";
+    } else {
+        try {
+            // データベースにデータを挿入するSQL文を準備
+            // $sql = "INSERT INTO results (date, machine_type, invest, retrieve, remarks) VALUES (:date, :machineType, :invest, :retrieve, :remarks)";
+            $sql = "INSERT INTO results (date, machine_type, invest, retrieve, remarks) VALUES (2024-01-01, 台A, 1000, 10000, 特になし)";
+            $stmt = $pdo->prepare($sql);
+            $stmt->bindParam(':date', $date);
+            $stmt->bindParam(':machineType', $machineType);
+            $stmt->bindParam(':invest', $invest);
+            $stmt->bindParam(':retrieve', $retrieve);
+            $stmt->bindParam(':remarks', $remarks);
+            // SQLクエリを実行
+            if ($stmt->execute()) {
+                echo "<p style='color:green;'>データが正常に登録されました。</p>";
+            } else {
+                echo "<p style='color:red;'>データベースエラーが発生しました。</p>";
+            }
+        } catch (PDOException $e) {
+            echo "<p style='color:red;'>データベースエラーが発生しました: " . $e->getMessage() . "</p>";
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -13,7 +45,7 @@ require "machine_list.php";
     </head>
     <body>
         <h1>収支管理</h1>
-        <form>
+        <form action="" method="POST">
             <div class="head_menu">
                 <div class="head_menu_list">
                     <ul>
@@ -82,7 +114,7 @@ require "machine_list.php";
                     <div id="NewRegist" style="vertical-align: top;">	
                         <div style="text-align:left;">
                             <span style="font-weight:bold;">稼動登録</span>
-                            <span id="playYMD" style="font-weight:bold;">2024/06/25</span>
+                            <span id="playYMD" name="playYMD" style="font-weight:bold;">2024-06-25</span>
                             (<span id="playWeek" style="font-weight:bold;">火</span>)
                         </div>
 
@@ -112,7 +144,7 @@ require "machine_list.php";
                                         ¥<input name="invest" type="text" value="0" maxlength="6" id="invest" style="width:70px;height:25px">
                                     </td>
                                     <td class="DataColumnOrange">
-                                        ¥<input name="return" type="text" value="0" maxlength="6" id="return" style="width:70px;height:25px">
+                                        ¥<input name="retrieve" type="text" value="0" maxlength="6" id="return" style="width:70px;height:25px">
                                     </td>
                                 </tr>
                                 <tr>

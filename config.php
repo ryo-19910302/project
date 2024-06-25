@@ -2,7 +2,7 @@
 
 require "connect.php";
 
-$max_loss = "";
+$max_loss = $_POST['max_loss'];
 $errors = array();
 
 // データベースから最新のmax_lossを取得
@@ -11,14 +11,14 @@ try {
     $stmt = $pdo->prepare($sql);
     $stmt->execute();
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    printr($result);
+    // printr($result);
     if ($result) {
         // 既存レコードがある場合はエラーを返す
         echo "<p style='color:red;'>既に登録されています。</p>";
         exit;
     }
 } catch (PDOException $e) {
-    echo "<p style='color:red;'>設定が登録されていません: " . $e->getMessage() . "</p>";
+    // echo "<p style='color:red;'>設定が登録されていません: " . $e->getMessage() . "</p>";
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </head>
     <body>
         <h1>収支管理</h1>
-        <form method="POST">
+        <form action="" method="POST">
             <div class="head_menu">
                 <div class="head_menu_list">
                     <ul>
