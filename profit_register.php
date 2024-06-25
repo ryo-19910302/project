@@ -1,5 +1,6 @@
 <?php
 require "connect.php";
+require "machine_list.php";
 
 ?>
 
@@ -11,7 +12,7 @@ require "connect.php";
         <link rel="stylesheet" href="base.css"> <!-- CSSファイル読込 -->
     </head>
     <body>
-        <h1>収支登録</h1>
+        <h1>収支管理</h1>
         <form>
             <div class="head_menu">
                 <div class="head_menu_list">
@@ -98,8 +99,10 @@ require "connect.php";
                                             <tbody>
                                                 <tr>
                                                     <td>
-                                                        <input name="txtMachineType" type="text" maxlength="25" id="txtMachineType" style="width:60%;">
-                                                        <input type="image" name="machineTypeSearch" id="machineTypeSearch" title="選択" src="../image/search.gif">
+                                                        <select name="machine_list" id="machine_list" style="width: 100%;">
+                                                            <option value="0000">----</option>
+                                                            <option value="0001">北斗の拳</option>
+                                                        </select>
                                                     </td>
                                                 </tr>
                                             </tbody>
