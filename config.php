@@ -2,28 +2,29 @@
 
 require "connect.php";
 
-$max_loss = $_POST['max_loss'];
+$max_loss = '';
 $errors = array();
 
-// データベースから最新のmax_lossを取得
-try {
-    $sql = "SELECT max_loss FROM config ORDER BY id DESC LIMIT 1";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute();
-    $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    // printr($result);
-    if ($result) {
-        // 既存レコードがある場合はエラーを返す
-        echo "<p style='color:red;'>既に登録されています。</p>";
-        exit;
+// データベースから最新のmax_lossを取得する関数
+function getMaxLoss($pdo) {
+    try {
+        $sql = "SELECT max_loss FROM config ORDER BY number DESC LIMIT 1";
+        // $sql = "SELECT max_loss FROM config ORDER BY id DESC LIMIT 1";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($result) {
+            return $result['max_loss'];
+        }
+    } catch (PDOException $e) {
+        echo "<p style='color:red;'>データベースエラーが発生しました: " . $e->getMessage() . "</p>";
     }
-} catch (PDOException $e) {
-    // echo "<p style='color:red;'>設定が登録されていません: " . $e->getMessage() . "</p>";
+    return '';
 }
 
+// POSTリクエストを処理
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $max_loss = trim($_POST['max_loss']);
-
 
     // バリデーション
     if (empty($max_loss)) {
@@ -36,22 +37,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare($sql);
             $stmt->bindParam(':max_loss', $max_loss);
 
-
             // SQLを実行
             if ($stmt->execute()) {
-                echo "<p style='color:green;'>正常に登録されました。</p>";
+                // echo "<p style='color:green;'>正常に登録されました。</p>";
+                echo "<script>showModal('正常に登録されました。');</script>";
             } 
         } catch (PDOException $e) {
-            echo "<p style='color:red;'>データベースエラーが発生しました: " . $e->getMessage() . "</p>";
+            // echo "<p style='color:red;'>データベースエラーが発生しました: " . $e->getMessage() . "</p>";
+            echo "<script>showModal('データベースエラーが発生しました');</script>";
         }
     } else {
         foreach ($errors as $error) {
             echo "<p style='color:red;'>$error</p>";
+            // echo "<script>showModal($error);</script>";
         }
     }
+    $max_loss = getMaxLoss($pdo);   // 登録後に最新のmax_lossを表示
+} else {
+    $max_loss = getMaxLoss($pdo);   // 初回表示時に最新のmax_lossを表示
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="ja">
     <head>
@@ -67,6 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <ul>
                         <li><a href="http://localhost/project/home.html">ホーム</a></li>
                         <li><a href="http://localhost/project/profit_register.php">収支登録</a></li>
+                        <li><a href="http://localhost/project/machine_list.php">台一覧</a></li>
                         <li><a href="http://localhost/project/config.php">設定</a></li>
                     </ul>
                 </div>
@@ -94,5 +100,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
         </form>
+
+        <!-- モーダルダイアログ -->
+        <div id="myModal" class="modal">
+            <div class="modal-content fs_12">
+                <span class="close">&times;</span>
+                <p id="modal-message"></p>
+            </div>
+        </div>
+
+        <script>
+            // モーダル表示用のスクリプト
+            var modal = document.getElementById("myModal");
+            var span = document.getElementsByClassName("close")[0];
+
+            function showModal(message) {
+                document.getElementById("modal-message").innerText = message;
+                modal.style.display = "block";
+            }
+
+            span.onclick = function() {
+                modal.style.display = "none";
+            }
+
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
+        </script>
     </body>
 </html>
