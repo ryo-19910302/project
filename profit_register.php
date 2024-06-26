@@ -1,5 +1,9 @@
 <?php
 require "connect.php";
+require "machine_data.php";
+
+// 台一覧を取得
+$machine_list = getMachineList($pdo);
 
 // POSTリクエストを処理
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -9,8 +13,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $invest = $_POST['invest'];
     $retrieve = $_POST['retrieve'];
     $remarks = $_POST['remarks'];
-    $profit = $_POST['retrieve'] - $_POST['invest'];
-    $win = ($_POST['retrieve'] >= $_POST['invest']) ? 1 : 0;
+    $profit = $retrieve - $invest;
+    $win = ($retrieve >= $invest) ? 1 : 0;
+
+    // デバッグ
+    // var_dump($_POST);
+    // echo '<pre>';
+    // var_dump($machine_list);
+    // echo '</pre>';
 
     if (empty($date) || empty($machineType) || empty($invest) || empty($retrieve)) {
         echo "<p style='color:red;'>すべての必須フィールドを入力してください。</p>";
@@ -54,67 +64,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="head_menu">
                 <div class="head_menu_list">
                     <ul>
-                        <li><a href="http://localhost/project/home.html">ホーム</a></li>
-                        <li><a href="http://localhost/project/profit_register.php">収支登録</a></li>
-                        <li><a href="http://localhost/project/machine_list.php">台一覧</a></li>
-                        <li><a href="http://localhost/project/config.php">設定</a></li>
+                        <li><a href="home.php">ホーム</a></li>
+                        <li><a href="profit_register.php">収支登録</a></li>
+                        <li><a href="machine_list.php">台一覧</a></li>
+                        <li><a href="config.php">設定</a></li>
                     </ul>
+                </div>
+            </div>
+            <div class="bar1">
+                <h1>収支登録</h1>
+                <div class="btn_area">
                 </div>
             </div>
             <div id="contents" style="height: auto !important;">
                 <div id="sub">
-                    <input type="date" style="font-family:Meiryo;"></input>
                 </div>
                 <div id="main">
                     <div id="NewRegist" style="vertical-align: top;">	
                         <div style="text-align:left;">
-                            <span style="font-weight:bold;">稼動登録</span>
-                            <span id="playYMD" name="playYMD" style="font-weight:bold;">2024-06-25</span>
-                            (<span id="playWeek" style="font-weight:bold;">火</span>)
+                            <span style="font-weight:bold;">日付</span>
+                            <input type="date" id="playYMD" name="playYMD" style="font-weight:bold;" value="2024-06-25"></span>
+                            
+                            <input type="submit" name="submitDate" value="表示">
                         </div>
 
                         <table class="nomal_input_table" style="width:550px;">
-                            <tbody>
                                 <tr>
                                     <th style="width:30%;">台</th>
                                     <th style="width:35%;">投資金額</th>
                                     <th style="width:35%;">回収金額</th>
                                 </tr>
+                            <tbody>
                                 <tr>
                                     <td class="DataColumnOrange" style="vertical-align: middle;white-space:nowrap;">
-                                        <table style="margin-top:2px;">
-                                            <tbody>
-                                                <tr>
-                                                    <td>
-                                                        <select name="machine_list" id="machine_list" style="width: 100%;">
-                                                        <?php
-                                                        // // マシンリストの配列
-                                                        // $machine_list = [
-                                                        //     ['id' => '0000', 'name' => '----'],
-                                                        //     ['id' => '0001', 'name' => '北斗の拳'],
-                                                        //     // 他のマシンも追加
-                                                        // ];
-
-                                                        // machine_list.phpから台情報をインクルード
-                                                        // include('machine_list.php');
-
-                                                        // machine_list.phpから台情報をインクルード
-                                                        // require_once('machine_list.php');
-                                                        // $machines = getMachineList($pdo);
-
-                                                        // ループで選択肢を生成
-                                                        // foreach ($machine_list as $machine) {
-                                                        //     // echo '<option value="' . htmlspecialchars($machine['id']) . '">' . htmlspecialchars($machine['name']) . '</option>';
-                                                        //     echo '<option value="' . htmlspecialchars($machine['name']) . '</option>';
-                                                        // }
-                                                        ?>
-                                                            <option value="0000">----</option>
-                                                            <option value="0001">北斗の拳</option>
-                                                        </select>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
+                                        <select name="machine_list" id="machine_list" style="width: 100%;">
+                                            <?php
+                                            // ループで選択肢を生成
+                                            foreach ($machine_list as $machine) {
+                                                echo '<option value="' . $machine['number'] . '">' . htmlspecialchars($machine['name']) . '</option>';
+                                            }
+                                            ?>
+                                        </select>
                                     </td>
                                     <td class="DataColumnOrange">
                                         ¥<input name="invest" type="text" value="0" maxlength="6" id="invest" style="width:70px;height:25px">
@@ -146,10 +136,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <hr>
                     </div>
                     <div style="text-align:left;">
-                        <span style="font-weight:bold;">登録情報</span>
-                        <span id="playYMD2" style="font-weight:bold;">2024/06/25</span>
-                        (<span id="playWeek2" style="font-weight:bold;">火</span>)
+                        <!-- <span style="font-weight:bold;">登録情報</span>
+                        <span id="playYMD2" style="font-weight:bold;">2024/06/25</span> -->
                     </div>
+
+                    <!-- 登録情報表示 -->
+                    <?php
+                    if (isset($_POST['submitDate'])) {
+                        $selectedDate = $_POST['playYMD'];
+                        // echo '<h2>登録情報 ' . htmlspecialchars($selectedDate) . '</h2>';
+                        echo '<h2 class="fs_16" style="padding-top: 20px;">収支情報 ' . date('Y/m/d', strtotime($selectedDate)) . '</h2>';
+
+                        // 登録情報の取得と表示
+                        try {
+                            $sql = "SELECT * FROM results WHERE date = :selectedDate";
+                            $stmt = $pdo->prepare($sql);
+                            $stmt->bindParam(':selectedDate', $selectedDate);
+                            $stmt->execute();
+                            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                            if (count($results) > 0) {
+                                echo '<table class="nomal_input_table fs_12" border="1">';
+                                echo '<tr><th>機種</th><th>投資金額</th><th>回収金額</th><th>備考</th><th>編集</th><th>削除</th></tr>';
+                                foreach ($results as $row) {
+                                    echo '<tr>';
+                                    echo '<td>' . htmlspecialchars($row['machine_type']) . '</td>';
+                                    echo '<td>¥' . htmlspecialchars($row['invest']) . '</td>';
+                                    echo '<td>¥' . htmlspecialchars($row['retrieve']) . '</td>';
+                                    echo '<td>' . htmlspecialchars($row['remarks']) . '</td>';
+                                    echo '<td><a href="edit.php?id=' . $row['id'] . '">編集</a></td>';
+                                    echo '<td><a href="delete.php?id=' . $row['id'] . '" onclick="return confirm(\'本当に削除しますか？\')">削除</a></td>';
+                                    echo '</tr>';
+                                }
+                                echo '</table>';
+                            } else {
+                                echo '<p>該当するデータはありません。</p>';
+                            }
+                        } catch (PDOException $e) {
+                            echo "<p style='color:red;'>データベースエラーが発生しました: " . $e->getMessage() . "</p>";
+                        }
+                    }
+                    ?>
+
                 </div>
             </div>
         </form>

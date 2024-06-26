@@ -70,10 +70,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="head_menu">
                 <div class="head_menu_list">
                     <ul>
-                        <li><a href="http://localhost/project/home.html">ホーム</a></li>
-                        <li><a href="http://localhost/project/profit_register.php">収支登録</a></li>
-                        <li><a href="http://localhost/project/machine_list.php">台一覧</a></li>
-                        <li><a href="http://localhost/project/config.php">設定</a></li>
+                        <li><a href="home.php">ホーム</a></li>
+                        <li><a href="profit_register.php">収支登録</a></li>
+                        <li><a href="machine_list.php">台一覧</a></li>
+                        <li><a href="config.php">設定</a></li>
                     </ul>
                 </div>
             </div>
@@ -90,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <table width="100%" class="tb_custom_bd">
                         <tbody>
                             <tr>
-                                <th width="200">最大損失額</th>
+                                <th width="200" class="fs_12">最大損失額</th>
                                 <td>
                                     <input type="text" class="max_loss" name="max_loss" maxlength="20" value="<?php echo htmlspecialchars($max_loss, ENT_QUOTES, 'UTF-8'); ?>">
                                 </td>

@@ -10,10 +10,10 @@
             <div class="head_menu">
                 <div class="head_menu_list">
                     <ul>
-                        <li><a href="http://localhost/project/home.html">ホーム</a></li>
-                        <li><a href="http://localhost/project/profit_register.php">収支登録</a></li>
-                        <li><a href="http://localhost/project/machine_list.php">台一覧</a></li>
-                        <li><a href="http://localhost/project/config.php">設定</a></li>
+                        <li><a href="home.php">ホーム</a></li>
+                        <li><a href="profit_register.php">収支登録</a></li>
+                        <li><a href="machine_list.php">台一覧</a></li>
+                        <li><a href="config.php">設定</a></li>
                     </ul>
                 </div>
             </div>
@@ -42,19 +42,18 @@
                 <div id="machine_list" class="mt_10">
                     <?php
                     require "connect.php";
+                    require "machine_data.php"; // 台一覧データを取得
 
-                    // 台情報を取得する関数
-                    function getMachineList($pdo) {
-                        try {
-                            $sql = "SELECT name FROM machine_list";
-                            $stmt = $pdo->prepare($sql);
-                            $stmt->execute();
-                            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-                        } catch (PDOException $e) {
-                            echo '<div class="frame fs_12">データベースエラーが発生しました: ' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8') . '</div>';
-                            return [];
-                        }
-                    }
+                    // 台情報を取得する関数 ※別ファイルに移動
+                    // function getMachineList($pdo) {
+                    //         $sql = "SELECT name FROM machine_list";
+                    //         $stmt = $pdo->prepare($sql);
+                    //         $stmt->execute();
+                    //         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    // }
+
+                    // 台一覧を取得
+                    $machines = getMachineList($pdo);
 
                     // POSTリクエスト処理
                     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -82,14 +81,6 @@
                             }
                         }
                     }
-
-                    // 台名リストを取得して表示
-                    $machines = getMachineList($pdo);
-                    // try {
-                        $sql = "SELECT name FROM machine_list";
-                        $stmt = $pdo->prepare($sql);
-                        $stmt->execute();
-                        $machines = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                         if ($machines) {
                             echo '<table width="100%" class="mv_5 tb_custom_bd fs_12">';
