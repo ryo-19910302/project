@@ -1,7 +1,7 @@
 <?php
 require "connect.php"; // データベース接続の設定ファイル
 
-// 直近の過去8日間の profit を取得する SQL
+// 直近の過去8日間の profit を取得するSQL
 $sql = "SELECT period, day, profit 
         FROM dairy_results 
         ORDER BY STR_TO_DATE(CONCAT(period, '-', day), '%Y-%m-%d')
@@ -37,9 +37,43 @@ foreach ($results as $result) {
     // 収支合計を加算
     $totalProfit += $result['profit'];
 }
+
 echo "<pre>";
 print_r($dailyProfitData);
 echo "</pre>";
+
+// 現在の年と月を取得
+$currentYear = date('Y');
+$currentMonth = date('m');
+
+// 当月の総収支額を計算するSQL
+$sql = "SELECT SUM(profit) as total_monthly_profit 
+        FROM dairy_results 
+        WHERE period = :currentYearMonth";
+$stmt = $pdo->prepare($sql);
+$stmt->bindParam(':currentYearMonth', $currentYearMonth);
+$currentYearMonth = $currentYear . '-' . $currentMonth;
+$stmt->execute();
+$monthlyResult = $stmt->fetch(PDO::FETCH_ASSOC);
+$totalMonthlyProfit = $monthlyResult['total_monthly_profit'] ?? 0; // キーが存在しない or NULLの場合に0を代入
+
+// 最新の最大損失額を取得するSQL
+$sql = "SELECT max_loss FROM config ORDER BY number DESC LIMIT 1";
+$stmt = $pdo->prepare($sql);
+$stmt->execute();
+$configResult = $stmt->fetch(PDO::FETCH_ASSOC);
+$maxLoss = $configResult['max_loss'] ?? 0;
+
+// 勝率が高いTOP3の台名を取得するSQL
+$sql = "SELECT m.name, r.machine_type, (SUM(CASE WHEN profit > 0 THEN 1 ELSE 0 END) / COUNT(*)) AS win_rate
+        FROM results r
+        join machine_list m on m.number = r.machine_type
+        GROUP BY machine_type 
+        ORDER BY win_rate DESC, COUNT(*) DESC 
+        LIMIT 3";
+$stmt = $pdo->prepare($sql);
+$stmt->execute();
+$topMachines = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // PHPからJavaScriptにデータを渡す
 echo '<script>';
@@ -49,6 +83,14 @@ echo 'var playCnt = ' . $playCnt . ';';
 echo 'var winCnt = ' . $winCnt . ';';
 echo 'var loseCnt = ' . $loseCnt . ';';
 echo 'var drawCnt = ' . $drawCnt . ';';
+
+if ($totalMonthlyProfit < -$maxLoss) {
+    echo 'var showAlert = true;';
+    echo 'var topMachines = ' . json_encode($topMachines) . ';';
+} else {
+    echo 'var showAlert = false;';
+}
+
 echo '</script>';
 
 
@@ -104,6 +146,15 @@ echo '</script>';
             </div>
     </form>
 
+    <!-- モーダルダイアログ -->
+    <div id="reccomendModal" class="modal">
+        <div class="reccomend-modal-content fs_12">
+            <span class="close">&times;</span>
+            <p id="modal-message"></p>
+            <ul id="topMachines"></ul>
+        </div>
+    </div>
+
     <script>
         // 収支データを取得
         var playCnt = document.getElementById('playCnt').innerText;
@@ -152,6 +203,36 @@ echo '</script>';
                 }
             }
         });
+
+        // モーダル表示
+        var modal = document.getElementById("reccomendModal");
+        var span = document.getElementsByClassName("close")[0];
+
+        function showModal(message, machines) {
+            document.getElementById("modal-message").innerText = message;
+            var ul = document.getElementById("topMachines");
+            machines.forEach(function(machine) {
+                var li = document.createElement("li");
+                li.innerText = machine.name + " - 勝率： " + (machine.win_rate * 100).toFixed(2) + "%";
+                ul.appendChild(li);
+            });
+            modal.style.display = "block";
+        }
+
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        // モーダルダイアログを表示
+        if (showAlert) {
+            showModal('当月の総収支額が最大損失額を下回っています。以下の台をお勧めします。', topMachines);
+        }
     </script>
 
 </body>

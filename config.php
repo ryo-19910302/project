@@ -9,7 +9,6 @@ $errors = array();
 function getMaxLoss($pdo) {
     try {
         $sql = "SELECT max_loss FROM config ORDER BY number DESC LIMIT 1";
-        // $sql = "SELECT max_loss FROM config ORDER BY id DESC LIMIT 1";
         $stmt = $pdo->prepare($sql);
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -39,11 +38,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // SQLを実行
             if ($stmt->execute()) {
-                // echo "<p style='color:green;'>正常に登録されました。</p>";
                 echo "<script>showModal('正常に登録されました。');</script>";
             } 
         } catch (PDOException $e) {
-            // echo "<p style='color:red;'>データベースエラーが発生しました: " . $e->getMessage() . "</p>";
             echo "<script>showModal('データベースエラーが発生しました');</script>";
         }
     } else {

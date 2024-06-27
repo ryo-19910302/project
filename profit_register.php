@@ -5,10 +5,17 @@ require "machine_data.php";
 // 台一覧を取得
 $machine_list = getMachineList($pdo);
 
+// 現在日を取得
+$currentDate = date('Y-m-d');
+
+// モーダルメッセージを初期化
+$modalMessage = '';
+
 // POSTリクエストを処理
+$selectedDate = $currentDate; // 初期値を現在日に設定
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $selectedDate = $_POST['playYMD']; // POSTデータから日付を取得（選択日付の保持）
     // フォームフィールドからデータを取得
-    $date = $_POST['playYMD']; // 日付のフォーマットはYYYY-MM-DDと仮定
     $machineType = $_POST['machine_list'];
     $invest = $_POST['invest'];
     $retrieve = $_POST['retrieve'];
@@ -16,10 +23,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $profit = $retrieve - $invest;
     $win = ($retrieve >= $invest) ? 1 : 0;
 
-    $period = date('Y-m', strtotime($date)); // YYYY-MM
-    $day = date('d', strtotime($date)); // DD
+    $period = date('Y-m', strtotime($selectedDate)); // YYYY-MM
+    $day = date('d', strtotime($selectedDate)); // DD
 
-    if (empty($date) || empty($machineType) || empty($invest) || empty($retrieve)) {
+    if (empty($selectedDate) || empty($machineType) || empty($invest) || empty($retrieve)) {
         echo "<p style='color:red;'>すべての必須フィールドを入力してください。</p>";
     } else {
         try {
@@ -30,8 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_total_invest = $pdo->prepare($sql_total_invest);
             $stmt_total_retrieve = $pdo->prepare($sql_total_retrieve);
 
-            $stmt_total_invest->bindParam(':date', $date);
-            $stmt_total_retrieve->bindParam(':date', $date);
+            $stmt_total_invest->bindParam(':date', $selectedDate);
+            $stmt_total_retrieve->bindParam(':date', $selectedDate);
             
             $stmt_total_invest->execute();
             $stmt_total_retrieve->execute();
@@ -51,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare($sql);
             $stmt2 = $pdo->prepare($sql2);
             // SQL文内のプレースホルダーに変数の値を挿入
-            $stmt->bindParam(':date', $date);
+            $stmt->bindParam(':date', $selectedDate);
             $stmt->bindParam(':machineType', $machineType);
             $stmt->bindParam(':invest', $invest);
             $stmt->bindParam(':retrieve', $retrieve);
@@ -75,7 +82,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // コミット
             $pdo->commit();
 
-            echo "<p style='color:green;'>登録しました。</p>";
+            // モーダルメッセージを設定
+            $modalMessage = '登録しました。';
 
         } catch (PDOException $e) {
             $pdo->rollBack();
@@ -117,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div id="NewRegist" style="vertical-align: top;">	
                         <div style="text-align:left;">
                             <span style="font-weight:bold;">日付</span>
-                            <input type="date" id="playYMD" name="playYMD" style="font-weight:bold;" value="2024-06-25"></span>
+                            <input type="date" id="playYMD" name="playYMD" style="font-weight:bold;" value="<?php echo htmlspecialchars($selectedDate, ENT_QUOTES, 'UTF-8'); ?>"></span>
                             
                             <input type="submit" name="submitDate" value="表示">
                         </div>
@@ -177,12 +185,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php
                     if (isset($_POST['submitDate'])) {
                         $selectedDate = $_POST['playYMD'];
-                        // echo '<h2>登録情報 ' . htmlspecialchars($selectedDate) . '</h2>';
                         echo '<h2 class="fs_16" style="padding-top: 20px;">収支情報 ' . date('Y/m/d', strtotime($selectedDate)) . '</h2>';
 
                         // 登録情報の取得と表示
                         try {
-                            // $sql = "SELECT * FROM results WHERE date = :selectedDate";
                             $sql = "SELECT r.*,
                                            m.name
                                     FROM results r
@@ -200,7 +206,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 echo '<tr><th>台</th><th>投資金額</th><th>回収金額</th><th>備考</th><th>編集</th><th>削除</th></tr>';
                                 foreach ($results as $row) {
                                     echo '<tr>';
-                                    // echo '<td>' . htmlspecialchars($row['machine_type']) . '</td>';
                                     echo '<td>' . htmlspecialchars($row['name']) . '</td>';
                                     echo '<td>¥' . htmlspecialchars($row['invest']) . '</td>';
                                     echo '<td>¥' . htmlspecialchars($row['retrieve']) . '</td>';
@@ -227,5 +232,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
         </form>
+
+        <!-- モーダルダイアログ -->
+        <div id="myModal" class="modal">
+            <div class="modal-content fs_12">
+                <span class="close">&times;</span>
+                <p id="modal-message"></p>
+            </div>
+        </div>
+
+        <script>
+            // モーダル表示用のスクリプト
+            var modal = document.getElementById("myModal");
+            var span = document.getElementsByClassName("close")[0];
+
+            function showModal(message) {
+                document.getElementById("modal-message").innerText = message;
+                modal.style.display = "block";
+            }
+
+            span.onclick = function() {
+                modal.style.display = "none";
+            }
+
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
+        </script>
+
     </body>
 </html>
