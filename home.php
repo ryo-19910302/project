@@ -84,11 +84,16 @@ echo 'var winCnt = ' . $winCnt . ';';
 echo 'var loseCnt = ' . $loseCnt . ';';
 echo 'var drawCnt = ' . $drawCnt . ';';
 
-if ($totalMonthlyProfit < -$maxLoss) {
-    echo 'var showAlert = true;';
+// if ($totalMonthlyProfit < -$maxLoss) {
+//     echo 'var showAlert = true;';
+//     echo 'var topMachines = ' . json_encode($topMachines) . ';';
+// } else {
+//     echo 'var showAlert = false;';
+// }
+$showAlert = ($totalMonthlyProfit < -$maxLoss);
+echo 'var showAlert = ' . ($showAlert ? 'true' : 'false') . ';';
+if ($showAlert) {
     echo 'var topMachines = ' . json_encode($topMachines) . ';';
-} else {
-    echo 'var showAlert = false;';
 }
 
 echo '</script>';

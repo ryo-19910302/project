@@ -30,54 +30,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo "<p style='color:red;'>すべての必須フィールドを入力してください。</p>";
     } else {
         try {
-            // 日単位の合計投資額を取得するSQLを準備
-            $sql_total_invest = "SELECT SUM(invest) AS total_invest FROM results WHERE date = :date";
-            $sql_total_retrieve = "SELECT SUM(retrieve) AS total_retrieve FROM results WHERE date = :date";
+            // 既存の日単位の合計投資額・回収額を取得するSQL
+            $sql_existing_totals = "SELECT SUM(invest) AS total_invest, SUM(retrieve) AS total_retrieve FROM results WHERE date = :date";
+            // $sql_total_retrieve = "SELECT SUM(retrieve) AS total_retrieve FROM results WHERE date = :date";
 
-            $stmt_total_invest = $pdo->prepare($sql_total_invest);
-            $stmt_total_retrieve = $pdo->prepare($sql_total_retrieve);
+            $stmt_existing_totals = $pdo->prepare($sql_existing_totals);
+            // $stmt_total_retrieve = $pdo->prepare($sql_total_retrieve);
 
-            $stmt_total_invest->bindParam(':date', $selectedDate);
-            $stmt_total_retrieve->bindParam(':date', $selectedDate);
+            $stmt_existing_totals->bindParam(':date', $selectedDate);
+            // $stmt_total_invest->bindParam(':date', $selectedDate);
+            // $stmt_total_retrieve->bindParam(':date', $selectedDate);
             
-            $stmt_total_invest->execute();
-            $stmt_total_retrieve->execute();
+            $stmt_existing_totals->execute();
+            // $stmt_total_invest->execute();
+            // $stmt_total_retrieve->execute();
 
-            $total_invest_result = $stmt_total_invest->fetch(PDO::FETCH_ASSOC);
-            $total_retrieve_result = $stmt_total_retrieve->fetch(PDO::FETCH_ASSOC);
+            $existing_totals = $stmt_existing_totals->fetch(PDO::FETCH_ASSOC);
+            // $total_invest_result = $stmt_total_invest->fetch(PDO::FETCH_ASSOC);
+            // $total_retrieve_result = $stmt_total_retrieve->fetch(PDO::FETCH_ASSOC);
 
-            $invest_amount = $total_invest_result['total_invest'] + $invest;
-            $retrieve_amount = $total_retrieve_result['total_retrieve'] + $retrieve;
+            // 新規に登録する合計投資額と回収額を計算
+            $invest_amount = $existing_totals['total_invest'] + $invest;
+            $retrieve_amount = $existing_totals['total_retrieve'] + $retrieve;
+            // $invest_amount = $total_invest_result['total_invest'] + $invest;
+            // $retrieve_amount = $total_retrieve_result['total_retrieve'] + $retrieve;
             $profit_amount = $retrieve_amount - $invest_amount;
 
             // データベースにデータを挿入するSQL文を準備
-            $sql = "INSERT INTO results (date, machine_type, invest, retrieve, remarks, profit, win) VALUES (:date, :machineType, :invest, :retrieve, :remarks, :profit, :win)";
-            $sql2 = "INSERT INTO dairy_results (period, day, invest_amount, retrieve_amount, profit) VALUES (:period, :day, :invest_amount, :retrieve_amount, :profit)";
+            $sql_insert_results  = "INSERT INTO results (date, machine_type, invest, retrieve, remarks, profit, win) VALUES (:date, :machineType, :invest, :retrieve, :remarks, :profit, :win)";
+            $sql_insert_daily_results  = "INSERT INTO dairy_results (period, day, invest_amount, retrieve_amount, profit) VALUES (:period, :day, :invest_amount, :retrieve_amount, :profit)";
 
             // PDOオブジェクトを使用してSQLを用意
-            $stmt = $pdo->prepare($sql);
-            $stmt2 = $pdo->prepare($sql2);
+            $stmt_insert_results = $pdo->prepare($sql_insert_results);
+            $stmt_insert_daily_results = $pdo->prepare($sql_insert_daily_results );
             // SQL文内のプレースホルダーに変数の値を挿入
-            $stmt->bindParam(':date', $selectedDate);
-            $stmt->bindParam(':machineType', $machineType);
-            $stmt->bindParam(':invest', $invest);
-            $stmt->bindParam(':retrieve', $retrieve);
-            $stmt->bindParam(':remarks', $remarks);
-            $stmt->bindParam(':profit', $profit);
-            $stmt->bindParam(':win', $win);
+            $stmt_insert_results->bindParam(':date', $selectedDate);
+            $stmt_insert_results->bindParam(':machineType', $machineType);
+            $stmt_insert_results->bindParam(':invest', $invest);
+            $stmt_insert_results->bindParam(':retrieve', $retrieve);
+            $stmt_insert_results->bindParam(':remarks', $remarks);
+            $stmt_insert_results->bindParam(':profit', $profit);
+            $stmt_insert_results->bindParam(':win', $win);
 
-            $stmt2->bindParam(':period', $period);
-            $stmt2->bindParam(':day', $day);
-            $stmt2->bindParam(':invest_amount', $invest_amount);
-            $stmt2->bindParam(':retrieve_amount', $retrieve_amount);
-            $stmt2->bindParam(':profit', $profit_amount);
+            $stmt_insert_daily_results->bindParam(':period', $period);
+            $stmt_insert_daily_results->bindParam(':day', $day);
+            $stmt_insert_daily_results->bindParam(':invest_amount', $invest_amount);
+            $stmt_insert_daily_results->bindParam(':retrieve_amount', $retrieve_amount);
+            $stmt_insert_daily_results->bindParam(':profit', $profit_amount);
 
             // トランザクション開始
             $pdo->beginTransaction();
             
             // SQLを実行
-            $stmt->execute();
-            $stmt2->execute();
+            $stmt_insert_results->execute();
+            $stmt_insert_daily_results->execute();
 
             // コミット
             $pdo->commit();
