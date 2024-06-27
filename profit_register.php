@@ -149,7 +149,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         // 登録情報の取得と表示
                         try {
-                            $sql = "SELECT * FROM results WHERE date = :selectedDate";
+                            // $sql = "SELECT * FROM results WHERE date = :selectedDate";
+                            $sql = "SELECT r.*,
+                                           m.name
+                                    FROM results r
+                                    join machine_list m on m.number = r.machine_type
+                                    WHERE r.date = :selectedDate";
                             $stmt = $pdo->prepare($sql);
                             $stmt->bindParam(':selectedDate', $selectedDate);
                             $stmt->execute();
@@ -157,10 +162,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                             if (count($results) > 0) {
                                 echo '<table class="nomal_input_table fs_12" border="1">';
-                                echo '<tr><th>機種</th><th>投資金額</th><th>回収金額</th><th>備考</th><th>編集</th><th>削除</th></tr>';
+                                echo '<tr><th>台</th><th>投資金額</th><th>回収金額</th><th>備考</th><th>編集</th><th>削除</th></tr>';
                                 foreach ($results as $row) {
                                     echo '<tr>';
-                                    echo '<td>' . htmlspecialchars($row['machine_type']) . '</td>';
+                                    // echo '<td>' . htmlspecialchars($row['machine_type']) . '</td>';
+                                    echo '<td>' . htmlspecialchars($row['name']) . '</td>';
                                     echo '<td>¥' . htmlspecialchars($row['invest']) . '</td>';
                                     echo '<td>¥' . htmlspecialchars($row['retrieve']) . '</td>';
                                     echo '<td>' . htmlspecialchars($row['remarks']) . '</td>';
@@ -168,7 +174,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     echo '<td><a href="delete.php?N=' . $row['number'] . '" onclick="return confirm(\'本当に削除しますか？\')">削除</a></td>';
                                     echo '</tr>';
                                 }
-                                echo '</table>';
+                                // echo "<pre>";
+                                // print_r($row);
+                                // echo "</pre>";
+                                // echo '</table>';
                             } else {
                                 echo '<p>該当するデータはありません。</p>';
                             }
