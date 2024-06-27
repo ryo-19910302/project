@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="ja">
     <head>
         <meta charset="UTF-8">
-        <title>収支登録</title>
+        <title>収支編集</title>
         <link rel="stylesheet" href="base.css"> <!-- CSSファイル読込 -->
     </head>
     <body>
@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
             <div class="bar1">
-                <h1>収支登録</h1>
+                <h1>収支の編集</h1>
                 <div class="btn_area">
                 </div>
             </div>
@@ -80,15 +80,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div id="sub">
                 </div>
                 <div id="main">
-                    <div id="NewRegist" style="vertical-align: top;">	
+                    <div id="EditRegist" style="vertical-align: top;">	
                         <div style="text-align:left;">
-                            <span style="font-weight:bold;">日付</span>
+                            <!-- <span style="font-weight:bold;">日付</span> -->
                             <input type="date" id="playYMD" name="playYMD" style="font-weight:bold;" value="2024-06-25"></span>
                             
                             <input type="submit" name="submitDate" value="表示">
                         </div>
 
-                        <table class="nomal_input_table" style="width:550px;">
+                        <table class="editor_input_table" style="width:550px;">
                                 <tr>
                                     <th style="width:30%;">台</th>
                                     <th style="width:35%;">投資金額</th>
@@ -96,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </tr>
                             <tbody>
                                 <tr>
-                                    <td class="DataColumnOrange" style="vertical-align: middle;white-space:nowrap;">
+                                    <td class="DataColumnEditor" style="vertical-align: middle;white-space:nowrap;">
                                         <select name="machine_list" id="machine_list" style="width: 100%;">
                                             <?php
                                             // ループで選択肢を生成
@@ -106,10 +106,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             ?>
                                         </select>
                                     </td>
-                                    <td class="DataColumnOrange">
+                                    <td class="DataColumnEditor">
                                         ¥<input name="invest" type="text" value="0" maxlength="6" id="invest" style="width:70px;height:25px">
                                     </td>
-                                    <td class="DataColumnOrange">
+                                    <td class="DataColumnEditor">
                                         ¥<input name="retrieve" type="text" value="0" maxlength="6" id="retrieve" style="width:70px;height:25px">
                                     </td>
                                 </tr>
@@ -117,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <th colspan="3">備考</th>
                                 </tr>
                                 <tr>
-                                    <td colspan="3" class="DataColumnOrange" style="vertical-align:top;">
+                                    <td colspan="3" class="DataColumnEditor" style="vertical-align:top;">
                                         <textarea name="remarks" rows="3" id="remarks" style="font-family:メイリオ;font-size:Small;width:99%;"></textarea>
                                     </td>
                                 </tr>
@@ -142,40 +142,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <!-- 登録情報表示 -->
                     <?php
-                    if (isset($_POST['submitDate'])) {
-                        $selectedDate = $_POST['playYMD'];
-                        // echo '<h2>登録情報 ' . htmlspecialchars($selectedDate) . '</h2>';
-                        echo '<h2 class="fs_16" style="padding-top: 20px;">収支情報 ' . date('Y/m/d', strtotime($selectedDate)) . '</h2>';
+                    // if (isset($_POST['submitDate'])) {
+                    //     $selectedDate = $_POST['playYMD'];
+                    //     // echo '<h2>登録情報 ' . htmlspecialchars($selectedDate) . '</h2>';
+                    //     echo '<h2 class="fs_16" style="padding-top: 20px;">収支情報 ' . date('Y/m/d', strtotime($selectedDate)) . '</h2>';
 
-                        // 登録情報の取得と表示
-                        try {
-                            $sql = "SELECT * FROM results WHERE date = :selectedDate";
-                            $stmt = $pdo->prepare($sql);
-                            $stmt->bindParam(':selectedDate', $selectedDate);
-                            $stmt->execute();
-                            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    //     // 登録情報の取得と表示
+                    //     try {
+                    //         $sql = "SELECT * FROM results WHERE date = :selectedDate";
+                    //         $stmt = $pdo->prepare($sql);
+                    //         $stmt->bindParam(':selectedDate', $selectedDate);
+                    //         $stmt->execute();
+                    //         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-                            if (count($results) > 0) {
-                                echo '<table class="nomal_input_table fs_12" border="1">';
-                                echo '<tr><th>機種</th><th>投資金額</th><th>回収金額</th><th>備考</th><th>編集</th><th>削除</th></tr>';
-                                foreach ($results as $row) {
-                                    echo '<tr>';
-                                    echo '<td>' . htmlspecialchars($row['machine_type']) . '</td>';
-                                    echo '<td>¥' . htmlspecialchars($row['invest']) . '</td>';
-                                    echo '<td>¥' . htmlspecialchars($row['retrieve']) . '</td>';
-                                    echo '<td>' . htmlspecialchars($row['remarks']) . '</td>';
-                                    echo '<td><a href="editor.php?N=' . $row['number'] . '">編集</a></td>';
-                                    echo '<td><a href="delete.php?N=' . $row['number'] . '" onclick="return confirm(\'本当に削除しますか？\')">削除</a></td>';
-                                    echo '</tr>';
-                                }
-                                echo '</table>';
-                            } else {
-                                echo '<p>該当するデータはありません。</p>';
-                            }
-                        } catch (PDOException $e) {
-                            echo "<p style='color:red;'>データベースエラーが発生しました: " . $e->getMessage() . "</p>";
-                        }
-                    }
+                    //         if (count($results) > 0) {
+                    //             echo '<table class="nomal_input_table fs_12" border="1">';
+                    //             echo '<tr><th>機種</th><th>投資金額</th><th>回収金額</th><th>備考</th><th>編集</th><th>削除</th></tr>';
+                    //             foreach ($results as $row) {
+                    //                 echo '<tr>';
+                    //                 echo '<td>' . htmlspecialchars($row['machine_type']) . '</td>';
+                    //                 echo '<td>¥' . htmlspecialchars($row['invest']) . '</td>';
+                    //                 echo '<td>¥' . htmlspecialchars($row['retrieve']) . '</td>';
+                    //                 echo '<td>' . htmlspecialchars($row['remarks']) . '</td>';
+                    //                 echo '<td><a href="edit.php?id=' . $row['id'] . '">編集</a></td>';
+                    //                 echo '<td><a href="delete.php?id=' . $row['id'] . '" onclick="return confirm(\'本当に削除しますか？\')">削除</a></td>';
+                    //                 echo '</tr>';
+                    //             }
+                    //             echo '</table>';
+                    //         } else {
+                    //             echo '<p>該当するデータはありません。</p>';
+                    //         }
+                    //     } catch (PDOException $e) {
+                    //         echo "<p style='color:red;'>データベースエラーが発生しました: " . $e->getMessage() . "</p>";
+                    //     }
+                    // }
                     ?>
 
                 </div>

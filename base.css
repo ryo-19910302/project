@@ -123,6 +123,14 @@
     padding-left: 3px;
 }
 
+.DataColumnEditor {
+    background-color: white;
+    font-size: 10pt;
+    height: 35px;
+    border: 1px solid #dc143c;
+    padding-left: 3px;
+}
+
 .nomal_input_table th {
     padding: 3px;
     text-align: left;
@@ -132,6 +140,18 @@
 }
 
 .nomal_input_table td {
+    padding: 8px;
+}
+
+.editor_input_table th {
+    padding: 3px;
+    text-align: left;
+    vertical-align: middle;
+    border: 1px solid #dc143c;
+    background-color: #f08080;
+}
+
+.editor_input_table td {
     padding: 8px;
 }
 
