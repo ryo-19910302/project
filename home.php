@@ -1,8 +1,11 @@
 <?php
 require "connect.php"; // データベース接続の設定ファイル
 
-// 直近の過去7回の profit を取得する SQL
-$sql = "SELECT profit FROM results ORDER BY date ASC LIMIT 8";
+// 直近の過去8日間の profit を取得する SQL
+$sql = "SELECT period, day, profit 
+        FROM dairy_results 
+        ORDER BY STR_TO_DATE(CONCAT(period, '-', day), '%Y-%m-%d')
+        ASC LIMIT 8";
 $stmt = $pdo->prepare($sql);
 $stmt->execute();
 $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -34,6 +37,9 @@ foreach ($results as $result) {
     // 収支合計を加算
     $totalProfit += $result['profit'];
 }
+echo "<pre>";
+print_r($dailyProfitData);
+echo "</pre>";
 
 // PHPからJavaScriptにデータを渡す
 echo '<script>';
@@ -105,12 +111,6 @@ echo '</script>';
         var loseCnt = document.getElementById('loseCnt').innerText;
         var drawCnt = document.getElementById('drawCnt').innerText;
         var profit = document.getElementById('profit').innerText.replace('¥', '').replace(',', ''); // ¥を除去し、カンマを削除
-        // デバッグ
-        // console.log(playCnt);
-        // console.log(winCnt);
-        // console.log(loseCnt);
-        // console.log(drawCnt);
-        // console.log(profit);
 
         // 収支データ (日ごと)
         var dailyProfitData = <?php echo json_encode($dailyProfitData); ?>

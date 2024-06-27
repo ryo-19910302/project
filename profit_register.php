@@ -16,20 +16,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $profit = $retrieve - $invest;
     $win = ($retrieve >= $invest) ? 1 : 0;
 
-    // デバッグ
-    // var_dump($_POST);
-    // echo '<pre>';
-    // var_dump($machine_list);
-    // echo '</pre>';
+    $period = date('Y-m', strtotime($date)); // YYYY-MM
+    $day = date('d', strtotime($date)); // DD
 
     if (empty($date) || empty($machineType) || empty($invest) || empty($retrieve)) {
         echo "<p style='color:red;'>すべての必須フィールドを入力してください。</p>";
     } else {
         try {
+            // 日単位の合計投資額を取得するSQLを準備
+            $sql_total_invest = "SELECT SUM(invest) AS total_invest FROM results WHERE date = :date";
+            $sql_total_retrieve = "SELECT SUM(retrieve) AS total_retrieve FROM results WHERE date = :date";
+
+            $stmt_total_invest = $pdo->prepare($sql_total_invest);
+            $stmt_total_retrieve = $pdo->prepare($sql_total_retrieve);
+
+            $stmt_total_invest->bindParam(':date', $date);
+            $stmt_total_retrieve->bindParam(':date', $date);
+            
+            $stmt_total_invest->execute();
+            $stmt_total_retrieve->execute();
+
+            $total_invest_result = $stmt_total_invest->fetch(PDO::FETCH_ASSOC);
+            $total_retrieve_result = $stmt_total_retrieve->fetch(PDO::FETCH_ASSOC);
+
+            $invest_amount = $total_invest_result['total_invest'] + $invest;
+            $retrieve_amount = $total_retrieve_result['total_retrieve'] + $retrieve;
+            $profit_amount = $retrieve_amount - $invest_amount;
+
             // データベースにデータを挿入するSQL文を準備
             $sql = "INSERT INTO results (date, machine_type, invest, retrieve, remarks, profit, win) VALUES (:date, :machineType, :invest, :retrieve, :remarks, :profit, :win)";
+            $sql2 = "INSERT INTO dairy_results (period, day, invest_amount, retrieve_amount, profit) VALUES (:period, :day, :invest_amount, :retrieve_amount, :profit)";
+
             // PDOオブジェクトを使用してSQLを用意
             $stmt = $pdo->prepare($sql);
+            $stmt2 = $pdo->prepare($sql2);
             // SQL文内のプレースホルダーに変数の値を挿入
             $stmt->bindParam(':date', $date);
             $stmt->bindParam(':machineType', $machineType);
@@ -38,13 +58,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bindParam(':remarks', $remarks);
             $stmt->bindParam(':profit', $profit);
             $stmt->bindParam(':win', $win);
+
+            $stmt2->bindParam(':period', $period);
+            $stmt2->bindParam(':day', $day);
+            $stmt2->bindParam(':invest_amount', $invest_amount);
+            $stmt2->bindParam(':retrieve_amount', $retrieve_amount);
+            $stmt2->bindParam(':profit', $profit_amount);
+
+            // トランザクション開始
+            $pdo->beginTransaction();
+            
             // SQLを実行
-            if ($stmt->execute()) {
-                echo "<p style='color:green;'>登録しました。</p>";
-            } else {
-                echo "<p style='color:red;'>データベースエラーが発生しました。</p>";
-            }
+            $stmt->execute();
+            $stmt2->execute();
+
+            // コミット
+            $pdo->commit();
+
+            echo "<p style='color:green;'>登録しました。</p>";
+
         } catch (PDOException $e) {
+            $pdo->rollBack();
             echo "<p style='color:red;'>データベースエラーが発生しました: " . $e->getMessage() . "</p>";
         }
     }
@@ -136,8 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <hr>
                     </div>
                     <div style="text-align:left;">
-                        <!-- <span style="font-weight:bold;">登録情報</span>
-                        <span id="playYMD2" style="font-weight:bold;">2024/06/25</span> -->
+
                     </div>
 
                     <!-- 登録情報表示 -->
@@ -160,6 +193,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $stmt->execute();
                             $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+                            $invest_amount = 0;
+                            $retrieve_amount = 0;
                             if (count($results) > 0) {
                                 echo '<table class="nomal_input_table fs_12" border="1">';
                                 echo '<tr><th>台</th><th>投資金額</th><th>回収金額</th><th>備考</th><th>編集</th><th>削除</th></tr>';
@@ -173,6 +208,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     echo '<td><a href="editor.php?N=' . $row['number'] . '">編集</a></td>';
                                     echo '<td><a href="delete.php?N=' . $row['number'] . '" onclick="return confirm(\'本当に削除しますか？\')">削除</a></td>';
                                     echo '</tr>';
+                                    $invest_amount += $row['invest'];
+                                    $retrieve_amount += $row['retrieve'];
                                 }
                                 // echo "<pre>";
                                 // print_r($row);
