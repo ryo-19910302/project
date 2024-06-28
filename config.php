@@ -5,6 +5,9 @@ require "connect.php";
 $max_loss = '';
 $errors = array();
 
+// モーダルメッセージを初期化
+$modalMessage = '';
+
 // データベースから最新のmax_lossを取得する関数
 function getMaxLoss($pdo) {
     try {
@@ -27,7 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // バリデーション
     if (empty($max_loss)) {
-        $errors[] = "最大損失額を入力してください";
+        // $errors[] = "最大損失額を入力してください";
+        echo "<script>showModal('最大損失額を入力してください');</script>";
     }
 
     if (empty($errors)) {
@@ -37,9 +41,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bindParam(':max_loss', $max_loss);
 
             // SQLを実行
-            if ($stmt->execute()) {
-                echo "<script>showModal('正常に登録されました。');</script>";
-            } 
+            // if ($stmt->execute()) {
+            //     echo "<script>showModal('正常に登録されました。');</script>";
+            // } 
+
+            $stmt->execute();
+
+            // モーダルメッセージを設定
+            $modalMessage = '登録しました。';
+
         } catch (PDOException $e) {
             echo "<script>showModal('データベースエラーが発生しました');</script>";
         }
@@ -79,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <h1>設定</h1>
                 <div class="btn_area">
                     <input type="submit" class="button" value="保存">
-                    <input type="button" class="button" value="戻る">
+                    <!-- <input type="button" class="button" value="戻る"> -->
                 </div>
             </div>
             <div class="wrapper">
@@ -108,23 +118,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <script>
             // モーダル表示用のスクリプト
-            var modal = document.getElementById("myModal");
-            var span = document.getElementsByClassName("close")[0];
+            // var modal = document.getElementById("configModal");
+            // var span = document.getElementsByClassName("close")[0];
 
-            function showModal(message) {
-                document.getElementById("modal-message").innerText = message;
-                modal.style.display = "block";
-            }
+            // function showModal(message) {
+            //     document.getElementById("modal-message").innerText = message;
+            //     modal.style.display = "block";
+            // }
 
-            span.onclick = function() {
-                modal.style.display = "none";
-            }
+            // span.onclick = function() {
+            //     modal.style.display = "none";
+            // }
 
-            window.onclick = function(event) {
-                if (event.target == modal) {
-                    modal.style.display = "none";
+            // window.onclick = function(event) {
+            //     if (event.target == modal) {
+            //         modal.style.display = "none";
+            //     }
+            // }
+
+            window.onload = function() {
+                var modalMessage = <?php echo json_encode($modalMessage); ?>;
+                if (modalMessage) {
+                    alert(modalMessage);
                 }
-            }
+            };
         </script>
     </body>
 </html>

@@ -249,23 +249,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <script>
             // モーダル表示用のスクリプト
-            var modal = document.getElementById("myModal");
-            var span = document.getElementsByClassName("close")[0];
+            // var modal = document.getElementById("myModal");
+            // var span = document.getElementsByClassName("close")[0];
 
-            function showModal(message) {
-                document.getElementById("modal-message").innerText = message;
-                modal.style.display = "block";
-            }
+            // function showModal(message) {
+            //     document.getElementById("modal-message").innerText = message;
+            //     modal.style.display = "block";
+            // }
 
-            span.onclick = function() {
-                modal.style.display = "none";
-            }
+            // span.onclick = function() {
+            //     modal.style.display = "none";
+            // }
 
-            window.onclick = function(event) {
-                if (event.target == modal) {
-                    modal.style.display = "none";
+            // window.onclick = function(event) {
+            //     if (event.target == modal) {
+            //         modal.style.display = "none";
+            //     }
+            // }
+
+            window.onload = function() {
+                var modalMessage = <?php echo json_encode($modalMessage); ?>;
+                if (modalMessage) {
+                    alert(modalMessage);
                 }
-            }
+            };
         </script>
 
     </body>

@@ -5,6 +5,9 @@ require "machine_data.php";
 // 台一覧を取得
 $machine_list = getMachineList($pdo);
 
+// モーダルメッセージを初期化
+$modalMessage = '';
+
 // 編集対象のデータnumberを取得
 $number = isset($_GET['N']) ? $_GET['N'] : null;
 // echo $number;
@@ -65,11 +68,30 @@ if ($_POST) {
             $stmt->bindParam(':profit', $profit);
             $stmt->bindParam(':win', $win);
             // SQLを実行
-            if ($stmt->execute()) {
-                echo "<p style='color:green;'>登録しました。</p>";
-            } else {
-                echo "<p style='color:red;'>データベースエラー1が発生しました。</p>";
-            }
+            // if ($stmt->execute()) {
+            //     echo "<p style='color:green;'>登録しました。</p>";
+            $stmt->execute();
+
+            // モーダルメッセージを設定
+            $modalMessage = '登録しました。';
+
+            // session_start();
+            // $_SESSION['message'] = "登録しました。";
+            // $_SESSION['message_type'] = "success";
+            // header("Location: profit_register.php");
+            // exit();
+    
+            // // メッセージ表示部分
+            // session_start();
+            // if (isset($_SESSION['message'])) {
+            //     echo "<p style='color:" . ($_SESSION['message_type'] === "success" ? "green" : "red") . ";'>" . htmlspecialchars($_SESSION['message'], ENT_QUOTES, 'UTF-8') . "</p>";
+            //     unset($_SESSION['message']);
+            //     unset($_SESSION['message_type']);
+            // }
+            
+            // } else {
+            //     echo "<p style='color:red;'>データベースエラー1が発生しました。</p>";
+            // }
         } catch (PDOException $e) {
             echo "<p style='color:red;'>データベースエラー2が発生しました: " . $e->getMessage() . "</p>";
         }
@@ -169,5 +191,25 @@ if ($_POST) {
                 </div>
             </div>
         </form>
+
+        <!-- モーダルダイアログ -->
+        <!-- <div id="myModal" class="modal">
+            <div class="modal-content fs_12">
+                <span class="close">&times;</span>
+                <p id="modal-message"></p>
+            </div>
+        </div> -->
+
+        <script>
+            window.onload = function() {
+                var modalMessage = <?php echo json_encode($modalMessage); ?>;
+                if (modalMessage) {
+                    alert(modalMessage);
+                }
+                // header("Location: profit_register.php");
+                // exit();
+            };
+        </script>
+
     </body>
 </html>

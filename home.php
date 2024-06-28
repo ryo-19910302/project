@@ -2,10 +2,20 @@
 require "connect.php"; // データベース接続の設定ファイル
 
 // 直近の過去8日間の profit を取得するSQL
-$sql = "SELECT period, day, profit 
-        FROM dairy_results 
-        ORDER BY STR_TO_DATE(CONCAT(period, '-', day), '%Y-%m-%d')
-        ASC LIMIT 8";
+// $sql = "SELECT period, day, profit 
+//         FROM dairy_results 
+//         ORDER BY STR_TO_DATE(CONCAT(period, '-', day), '%Y-%m-%d')
+//         ASC LIMIT 8";
+// $sql = "SELECT period, day, SUM(profit) as profit 
+//         FROM dairy_results
+//         GROUP BY period, day
+//         ORDER BY STR_TO_DATE(CONCAT(period, '-', day), '%Y-%m-%d')
+//         ASC LIMIT 8";
+$sql = "SELECT date, SUM(profit) as profit 
+        FROM results 
+        GROUP BY date
+        ORDER BY date DESC
+        LIMIT 8";
 $stmt = $pdo->prepare($sql);
 $stmt->execute();
 $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -13,40 +23,55 @@ $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // 収支合計の初期化
 $totalProfit = 0;
 
-// 勝敗数を初期化
-$playCnt = 0;
-$winCnt = 0;
-$loseCnt = 0;
-$drawCnt = 0;
+// // 勝敗数を初期化
+// $playCnt = 0;
+// $winCnt = 0;
+// $loseCnt = 0;
+// $drawCnt = 0;
 
 // profit の配列を準備
 $dailyProfitData = [];
+$dailyDates = [];
 
 foreach ($results as $result) {
     // 収支データを配列に追加する
     $dailyProfitData[] = (int)$result['profit'];
-    // 勝敗数をカウント
-    if ($result['profit'] > 0) {
-        $winCnt++;
-    } elseif ($result['profit'] < 0) {
-        $loseCnt++;
-    } else {
-        $drawCnt++;
-    }
-    $playCnt++;
+    $dailyDates[] = $result['date'];
     // 収支合計を加算
     $totalProfit += $result['profit'];
 }
 
-echo "<pre>";
-print_r($dailyProfitData);
-echo "</pre>";
+// 個別の勝敗数をカウントするSQL
+$sql = "SELECT profit FROM results WHERE date >= (SELECT DATE_SUB(CURDATE(), INTERVAL 8 DAY))";
+$stmt = $pdo->prepare($sql);
+$stmt->execute();
+$winCnt = 0;
+$loseCnt = 0;
+$drawCnt = 0;
+$playCnt = 0;
+
+while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $playCnt++;
+    if ($row['profit'] > 0) {
+        $winCnt++;
+    } elseif ($row['profit'] < 0) {
+        $loseCnt++;
+    } else {
+        $drawCnt++;
+    }
+    // 収支合計を加算
+    // $totalProfit += $result['profit'];
+}
+
+// echo "<pre>";
+// print_r($dailyProfitData);
+// echo "</pre>";
 
 // 現在の年と月を取得
 $currentYear = date('Y');
 $currentMonth = date('m');
 
-// 当月の総収支額を計算するSQL
+// 当月の総収支額を計算するSQL（resultsテーブルで集計するよう修正が必要）
 $sql = "SELECT SUM(profit) as total_monthly_profit 
         FROM dairy_results 
         WHERE period = :currentYearMonth";
@@ -56,6 +81,13 @@ $currentYearMonth = $currentYear . '-' . $currentMonth;
 $stmt->execute();
 $monthlyResult = $stmt->fetch(PDO::FETCH_ASSOC);
 $totalMonthlyProfit = $monthlyResult['total_monthly_profit'] ?? 0; // キーが存在しない or NULLの場合に0を代入
+///////////////////////////////////////////////////////////
+echo "<pre>";
+print_r($monthlyResult);
+echo "</pre>";
+// echo $totalMonthlyProfit;    // 正しく計算できていない。
+///////////////////////////////////////////////////////////
+
 
 // 最新の最大損失額を取得するSQL
 $sql = "SELECT max_loss FROM config ORDER BY number DESC LIMIT 1";
@@ -63,6 +95,8 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute();
 $configResult = $stmt->fetch(PDO::FETCH_ASSOC);
 $maxLoss = $configResult['max_loss'] ?? 0;
+// echo $maxLoss;
+
 
 // 勝率が高いTOP3の台名を取得するSQL
 $sql = "SELECT m.name, r.machine_type, (SUM(CASE WHEN profit > 0 THEN 1 ELSE 0 END) / COUNT(*)) AS win_rate
@@ -77,7 +111,8 @@ $topMachines = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // PHPからJavaScriptにデータを渡す
 echo '<script>';
-echo 'var dailyProfitData = ' . json_encode($dailyProfitData) . ';'; // JSON形式でデータをJavaScriptに渡す
+echo 'var dailyProfitData = ' . json_encode(array_reverse($dailyProfitData)) . ';'; // JSON形式でデータをJavaScriptに渡す（降順のため逆順にする）
+echo 'var dailyDates = ' . json_encode(array_reverse($dailyDates)) . ';'; // 日付も逆順にする
 
 echo 'var playCnt = ' . $playCnt . ';';
 echo 'var winCnt = ' . $winCnt . ';';
@@ -161,15 +196,16 @@ echo '</script>';
     </div>
 
     <script>
-        // 収支データを取得
-        var playCnt = document.getElementById('playCnt').innerText;
-        var winCnt = document.getElementById('winCnt').innerText;
-        var loseCnt = document.getElementById('loseCnt').innerText;
-        var drawCnt = document.getElementById('drawCnt').innerText;
-        var profit = document.getElementById('profit').innerText.replace('¥', '').replace(',', ''); // ¥を除去し、カンマを削除
+        // // 収支データを取得
+        // var playCnt = document.getElementById('playCnt').innerText;
+        // var winCnt = document.getElementById('winCnt').innerText;
+        // var loseCnt = document.getElementById('loseCnt').innerText;
+        // var drawCnt = document.getElementById('drawCnt').innerText;
+        // var profit = document.getElementById('profit').innerText.replace('¥', '').replace(',', ''); // ¥を除去し、カンマを削除
 
-        // 収支データ (日ごと)
-        var dailyProfitData = <?php echo json_encode($dailyProfitData); ?>
+        // // 収支データ (日ごと)
+        // var dailyProfitData = <?php echo json_encode($dailyProfitData); ?>
+        // var dailyDates = <?php echo json_encode($dailyDates); ?>;
 
         // 累積収支データを計算する関数
         function calculateCumulativeProfit(data) {

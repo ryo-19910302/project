@@ -55,6 +55,9 @@
                     // 台一覧を取得
                     $machines = getMachineList($pdo);
 
+                    // モーダルメッセージを初期化
+                    $modalMessage = '';
+
                     // POSTリクエスト処理
                     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         if (isset($_POST['name'])) {
@@ -68,11 +71,14 @@
                                     $stmt->bindParam(':name', $name);
                     
                                     // SQLを実行
-                                    if ($stmt->execute()) {
-                                        echo "<script>showModal('台名を登録しました。');</script>";
-                                    } else {
-                                        echo "<script>showModal('データベースエラーが発生しました。');</script>";
-                                    }
+                                    // if ($stmt->execute()) {
+                                    //     echo "<script>showModal('台名を登録しました。');</script>";
+                                    $stmt->execute();
+                                    // モーダルメッセージを設定
+                                    $modalMessage = '登録しました。';
+                                    // } else {
+                                    //     echo "<script>showModal('データベースエラーが発生しました。');</script>";
+                                    // }
                                 } catch (PDOException $e) {
                                     echo "<script>showModal('データベースエラーが発生しました: " . $e->getMessage() . "');</script>";
                                 }
@@ -109,32 +115,39 @@
         </form>
 
     <!-- モーダルダイアログ -->
-    <div id="myModal" class="modal">
+    <!-- <div id="myModal" class="modal">
         <div class="modal-content fs_12">
             <span class="close">&times;</span>
             <p id="modal-message"></p>
         </div>
-    </div>
+    </div> -->
 
     <script>
         // モーダル表示用のスクリプト
-        var modal = document.getElementById("myModal");
-        var span = document.getElementsByClassName("close")[0];
+        // var modal = document.getElementById("myModal");
+        // var span = document.getElementsByClassName("close")[0];
 
-        function showModal(message) {
-            document.getElementById("modal-message").innerText = message;
-            modal.style.display = "block";
-        }
+        // function showModal(message) {
+        //     document.getElementById("modal-message").innerText = message;
+        //     modal.style.display = "block";
+        // }
 
-        span.onclick = function() {
-            modal.style.display = "none";
-        }
+        // span.onclick = function() {
+        //     modal.style.display = "none";
+        // }
 
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
+        // window.onclick = function(event) {
+        //     if (event.target == modal) {
+        //         modal.style.display = "none";
+        //     }
+        // }
+
+        window.onload = function() {
+            var modalMessage = <?php echo json_encode($modalMessage); ?>;
+            if (modalMessage) {
+                alert(modalMessage);
             }
-        }
+        };
     </script>
     </body>
 </html>
